@@ -9,15 +9,14 @@ class MedNext(torch.nn.Module):
         #using groups=in_channels to decrease the number of the trainable parameter, making model light weight
         self.act=torch.nn.GELU()
         self.conv2=torch.nn.Conv3d(in_channels,exp_r*in_channels,1,1,0)
-        self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=exp_r*in_channels)
+        self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=in_channels)
         self.conv3=torch.nn.Conv3d(exp_r*in_channels,in_channels,1,1,0)
     
     def forward(self,x):
         x1=self.conv1(x)
-        x1=self.act(x1)
+        x1=self.norm(x1)
         x1=self.conv2(x1)
         x1=self.act(x1)
-        x1=self.norm(x1)
         x1=self.conv3(x1)
         
         return x1
@@ -33,29 +32,28 @@ class MedDownSample(torch.nn.Module):
         #using groups=in_channels to decrease the number of the trainable parameter, making model light weight
         self.act=torch.nn.GELU()
         self.conv2=torch.nn.Conv3d(in_channels,(exp_r*in_channels),1,1,0)
-        self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=exp_r*in_channels)
+        self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=in_channels)
         
         self.conv3=torch.nn.Conv3d(exp_r*in_channels,(2*in_channels),1,1,0)
         
         
-        #MedNext DownSample
-        self.do_res=True
+        # #MedNext DownSample
+        # self.do_res=True
         
-        if self.do_res:
-            self.res_conv1=torch.nn.Conv3d(in_channels,(2*in_channels),1,2)
+        # if self.do_res:
+        #     self.res_conv1=torch.nn.Conv3d(in_channels,(2*in_channels),1,2)
         
     def forward(self,x):
         x1=self.conv1(x)
-        x1=self.act(x1)
-        x1=self.conv2(x1)
         x1=self.norm(x1)
+        x1=self.conv2(x1)
         x1=self.act(x1)
         x1=self.conv3(x1)
 
-        res=self.res_conv1(x)
-        if self.do_res:
-            res=self.res_conv1(x)
-            x1=x1+res
+        # res=self.res_conv1(x)
+        # if self.do_res:
+        #     res=self.res_conv1(x)
+        #     x1=x1+res
         return x1
 
 class MedUpSample(torch.nn.Module):
@@ -65,27 +63,26 @@ class MedUpSample(torch.nn.Module):
         #using groups=in_channels to decrease the number of the trainable parameter, making model light weight
         self.act=torch.nn.GELU()
         self.conv2=torch.nn.Conv3d(in_channels,exp_r*in_channels,1,1,0)
-        self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=exp_r*in_channels)
+        self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=in_channels)
         self.conv3=torch.nn.Conv3d(exp_r*in_channels,int(in_channels/2),1,1,0)
-        #MedNext DownSample
-        self.do_res=True
+        # #MedNext UpSample
+        # self.do_res=True
 
-        if self.do_res:
-            self.res_conv1=torch.nn.ConvTranspose3d(in_channels,int(in_channels/2),1,2)
+        # if self.do_res:
+        #     self.res_conv1=torch.nn.ConvTranspose3d(in_channels,int(in_channels/2),1,2)
         
     def forward(self,x):
         x1=self.conv1(x)
-        x1=self.act(x1)
-        x1=self.conv2(x1)
         x1=self.norm(x1)
+        x1=self.conv2(x1)
         x1=self.act(x1)
         x1=self.conv3(x1)
         x1=torch.nn.functional.pad(x1,(1,0,1,0,1,0))
 
-        if self.do_res:
-            res=self.res_conv1(x)
-            res = torch.nn.functional.pad(res, (1,0,1,0,1,0))
-            x1=x1+res
+        # if self.do_res:
+        #     res=self.res_conv1(x)
+        #     res = torch.nn.functional.pad(res, (1,0,1,0,1,0))
+        #     x1=x1+res
         return x1
 
 
