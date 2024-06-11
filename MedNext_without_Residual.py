@@ -10,7 +10,7 @@ class MedNext(torch.nn.Module):
         self.act=torch.nn.GELU()
         self.conv2=torch.nn.Conv3d(in_channels,exp_r*in_channels,1,1,0)
         self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=in_channels)
-        self.conv3=torch.nn.Conv3d(exp_r*in_channels,in_channels,1,1,0)
+        self.conv3=torch.nn.Conv3d(exp_r*in_channels,out_channels,1,1,0)
     
     def forward(self,x):
         x1=self.conv1(x)
@@ -34,7 +34,7 @@ class MedDownSample(torch.nn.Module):
         self.conv2=torch.nn.Conv3d(in_channels,(exp_r*in_channels),1,1,0)
         self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=in_channels)
         
-        self.conv3=torch.nn.Conv3d(exp_r*in_channels,(2*in_channels),1,1,0)
+        self.conv3=torch.nn.Conv3d(exp_r*in_channels,out_channels,1,1,0)
         
         
         # #MedNext DownSample
@@ -64,7 +64,7 @@ class MedUpSample(torch.nn.Module):
         self.act=torch.nn.GELU()
         self.conv2=torch.nn.Conv3d(in_channels,exp_r*in_channels,1,1,0)
         self.norm=torch.nn.GroupNorm(num_groups=in_channels,num_channels=in_channels)
-        self.conv3=torch.nn.Conv3d(exp_r*in_channels,int(in_channels/2),1,1,0)
+        self.conv3=torch.nn.Conv3d(exp_r*in_channels,int(out_channels/2),1,1,0)
         # #MedNext UpSample
         # self.do_res=True
 
@@ -93,73 +93,73 @@ class Med_Final2(torch.nn.Module):
         self.exp_rate=exp_rate
         self.num_blocks=num_blocks
         
-        self.semm=torch.nn.Conv3d(in_channels,in_channels,1)
+        self.semm=torch.nn.Conv3d(in_channels,out_channels,1)
         
         self.med_1=torch.nn.Sequential(*[
-            MedNext(in_channels,in_channels,exp_rate[0])
+            MedNext(out_channels,out_channels,exp_rate[0])
             for i in range(num_blocks[0])
         ])
         
-        self.encoder_down1= MedDownSample(in_channels,out_channels,exp_rate[1])
+        self.encoder_down1= MedDownSample(out_channels,2*out_channels,exp_rate[1])
         
         self.med_2=torch.nn.Sequential(*[
-            MedNext(2*in_channels,in_channels,exp_rate[1])
+            MedNext(2*out_channels,2*out_channels,exp_rate[1])
             for i in range(self.num_blocks[1])
         ])
         
         
-        self.encoder_down2=MedDownSample(2*in_channels,out_channels,exp_rate[2])
+        self.encoder_down2=MedDownSample(2*out_channels,4*out_channels,exp_rate[2])
         
         self.med_3=torch.nn.Sequential(*[
-            MedNext(4*in_channels,out_channels,exp_rate[2])
+            MedNext(4*out_channels,4*out_channels,exp_rate[2])
             for i in range(self.num_blocks[2])
         ])
         
-        self.encoder_down3=MedDownSample(4*in_channels,out_channels,exp_rate[3])
+        self.encoder_down3=MedDownSample(4*out_channels,8*out_channels,exp_rate[3])
         
         self.med_4=torch.nn.Sequential(*[
-            MedNext(8*in_channels,out_channels,exp_rate[3])
+            MedNext(8*out_channels,8*out_channels,exp_rate[3])
             for i in range(self.num_blocks[3])
         ])
         
-        self.encoder_down4=MedDownSample(8*in_channels,out_channels,exp_rate[4])
+        self.encoder_down4=MedDownSample(8*out_channels,16*out_channels,exp_rate[4])
         
         self.med_5=torch.nn.Sequential(*[
-            MedNext(16*in_channels,out_channels,exp_rate[4])
+            MedNext(16*out_channels,16*out_channels,exp_rate[4])
             for i in range(self.num_blocks[4])
         ])
         
-        self.decoder_up1=MedUpSample(16*in_channels,out_channels,exp_rate[4])
+        self.decoder_up1=MedUpSample(16*out_channels,16*out_channels,exp_rate[4])
         
         self.med_6=torch.nn.Sequential(*[
-            MedNext(8*in_channels,out_channels,exp_rate[5])
+            MedNext(8*out_channels,8*out_channels,exp_rate[5])
             for i in range(self.num_blocks[5])
         ])
         
-        self.decoder_up2=MedUpSample(8*in_channels,out_channels,exp_rate[5])
+        self.decoder_up2=MedUpSample(8*out_channels,8*out_channels,exp_rate[5])
             
         
         self.med_7=torch.nn.Sequential(*[
-            MedNext(4*in_channels,out_channels,exp_rate[6])
+            MedNext(4*out_channels,4*out_channels,exp_rate[6])
             for i in range(self.num_blocks[6])
         ])
         
-        self.decoder_up3=MedUpSample(4*in_channels,out_channels,exp_rate[6])
+        self.decoder_up3=MedUpSample(4*out_channels,4*out_channels,exp_rate[6])
         
         self.med_8=torch.nn.Sequential(*[
-            MedNext(2*in_channels,out_channels,exp_rate[7])
+            MedNext(2*out_channels,2*out_channels,exp_rate[7])
             for i in range(self.num_blocks[7])
         ])
         
-        self.decoder_up4=MedUpSample(2*in_channels,out_channels,exp_rate[7])
+        self.decoder_up4=MedUpSample(2*out_channels,2*out_channels,exp_rate[7])
             
         
         self.med_9=torch.nn.Sequential(*[
-            MedNext(in_channels,out_channels,exp_rate[8])
+            MedNext(out_channels,out_channels,exp_rate[8])
             for i in range(self.num_blocks[8])
         ])
         
-        self.out=torch.nn.ConvTranspose3d(in_channels,out_channels,1)
+        self.out=torch.nn.ConvTranspose3d(out_channels,4,1)
     
     def forward(self,x):
         #encoder section
@@ -187,3 +187,27 @@ class Med_Final2(torch.nn.Module):
         x18=self.med_9(x17+x2)
         x19=self.out(x18)
         return x19
+    
+    
+if __name__ == "__main__":
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device == "cuda":
+        torch.cuda.empty_cache()
+
+
+    in_channels = 4
+    exp_r=[2,3,4,4,4,4,4,3,2]
+    kernel_size = 3
+    n_channels=16
+    groups = in_channels
+    model = Med_Final2(in_channels=in_channels, out_channels=n_channels)
+    model.to(device)
+
+    input_tensor = torch.randn(1, in_channels, 32, 32, 32)  
+    # input_tensor = torch.randn(1, 4, 16, 32, 32)  
+    input_tensor = input_tensor.to(device)
+    output = model(input_tensor)
+    def count_parameters(model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad) / 1_000_000
+    print("Total trainable parameters: {:.2f}M".format(count_parameters(model)))
