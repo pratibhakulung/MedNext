@@ -291,7 +291,7 @@ class MedNeXt(nn.Module):
             groups=groups,
         )for i in range(2)])
 
-        ## Upward blocks
+        ## Decoder blocks
         self.up_block_1 = upBlock(
             in_channels=16 * n_channels,
             out_channels=16 * n_channels,
@@ -410,6 +410,6 @@ if __name__ == "__main__":
     output = model(input_tensor)
 
     def count_parameters(model):
-        return sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print("Total trainable parameters:", count_parameters(model))
+        return sum(p.numel() for p in model.parameters() if p.requires_grad) / 1_000_000
+    print("Total trainable parameters: {:.2f}M".format(count_parameters(model)))
 
