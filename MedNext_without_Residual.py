@@ -1,7 +1,7 @@
 import torch
 
 #Model
-class MedNext(torch.nn.Module):
+class MedNeXtBloc(torch.nn.Module):
     def __init__(self,in_channels,out_channels,exp_r):
         super().__init__()
         self.exp_r=exp_r
@@ -21,7 +21,7 @@ class MedNext(torch.nn.Module):
         
         return x1
 
-class MedDownSample(torch.nn.Module):
+class MedNeXtDownSamplingBlock(torch.nn.Module):
     
     def __init__(self,in_channels,out_channels,exp_r):
         super().__init__()     
@@ -56,7 +56,7 @@ class MedDownSample(torch.nn.Module):
         #     x1=x1+res
         return x1
 
-class MedUpSample(torch.nn.Module):
+class MedNeXtUpSamplingBlock(torch.nn.Module):
     def __init__(self,in_channels,out_channels,exp_r):
         super().__init__()     
         self.conv1=torch.nn.ConvTranspose3d(in_channels,in_channels,7,2,(3,3,3),groups=in_channels)
@@ -86,7 +86,7 @@ class MedUpSample(torch.nn.Module):
         return x1
 
 
-class Med_Final2(torch.nn.Module):
+class MedNeXt(torch.nn.Module):
     def __init__(self,in_channels,out_channels,exp_rate=[2,3,4,4,4,4,4,3,2],num_blocks=[2,2,2,2,2,2,2,2,2]):
         super().__init__()
         
@@ -96,66 +96,66 @@ class Med_Final2(torch.nn.Module):
         self.semm=torch.nn.Conv3d(in_channels,out_channels,1)
         
         self.med_1=torch.nn.Sequential(*[
-            MedNext(out_channels,out_channels,exp_rate[0])
+            MedNeXtBloc(out_channels,out_channels,exp_rate[0])
             for i in range(num_blocks[0])
         ])
         
-        self.encoder_down1= MedDownSample(out_channels,2*out_channels,exp_rate[1])
+        self.encoder_down1= MedNeXtDownSamplingBlock(out_channels,2*out_channels,exp_rate[1])
         
         self.med_2=torch.nn.Sequential(*[
-            MedNext(2*out_channels,2*out_channels,exp_rate[1])
+            MedNeXtBloc(2*out_channels,2*out_channels,exp_rate[1])
             for i in range(self.num_blocks[1])
         ])
         
         
-        self.encoder_down2=MedDownSample(2*out_channels,4*out_channels,exp_rate[2])
+        self.encoder_down2=MedNeXtDownSamplingBlock(2*out_channels,4*out_channels,exp_rate[2])
         
         self.med_3=torch.nn.Sequential(*[
-            MedNext(4*out_channels,4*out_channels,exp_rate[2])
+            MedNeXtBloc(4*out_channels,4*out_channels,exp_rate[2])
             for i in range(self.num_blocks[2])
         ])
         
-        self.encoder_down3=MedDownSample(4*out_channels,8*out_channels,exp_rate[3])
+        self.encoder_down3=MedNeXtDownSamplingBlock(4*out_channels,8*out_channels,exp_rate[3])
         
         self.med_4=torch.nn.Sequential(*[
-            MedNext(8*out_channels,8*out_channels,exp_rate[3])
+            MedNeXtBloc(8*out_channels,8*out_channels,exp_rate[3])
             for i in range(self.num_blocks[3])
         ])
         
-        self.encoder_down4=MedDownSample(8*out_channels,16*out_channels,exp_rate[4])
+        self.encoder_down4=MedNeXtDownSamplingBlock(8*out_channels,16*out_channels,exp_rate[4])
         
         self.med_5=torch.nn.Sequential(*[
-            MedNext(16*out_channels,16*out_channels,exp_rate[4])
+            MedNeXtBloc(16*out_channels,16*out_channels,exp_rate[4])
             for i in range(self.num_blocks[4])
         ])
         
-        self.decoder_up1=MedUpSample(16*out_channels,16*out_channels,exp_rate[4])
+        self.decoder_up1=MedNeXtUpSamplingBlock(16*out_channels,16*out_channels,exp_rate[4])
         
         self.med_6=torch.nn.Sequential(*[
-            MedNext(8*out_channels,8*out_channels,exp_rate[5])
+            MedNeXtBloc(8*out_channels,8*out_channels,exp_rate[5])
             for i in range(self.num_blocks[5])
         ])
         
-        self.decoder_up2=MedUpSample(8*out_channels,8*out_channels,exp_rate[5])
+        self.decoder_up2=MedNeXtUpSamplingBlock(8*out_channels,8*out_channels,exp_rate[5])
             
         
         self.med_7=torch.nn.Sequential(*[
-            MedNext(4*out_channels,4*out_channels,exp_rate[6])
+            MedNeXtBloc(4*out_channels,4*out_channels,exp_rate[6])
             for i in range(self.num_blocks[6])
         ])
         
-        self.decoder_up3=MedUpSample(4*out_channels,4*out_channels,exp_rate[6])
+        self.decoder_up3=MedNeXtUpSamplingBlock(4*out_channels,4*out_channels,exp_rate[6])
         
         self.med_8=torch.nn.Sequential(*[
-            MedNext(2*out_channels,2*out_channels,exp_rate[7])
+            MedNeXtBloc(2*out_channels,2*out_channels,exp_rate[7])
             for i in range(self.num_blocks[7])
         ])
         
-        self.decoder_up4=MedUpSample(2*out_channels,2*out_channels,exp_rate[7])
+        self.decoder_up4=MedNeXtUpSamplingBlock(2*out_channels,2*out_channels,exp_rate[7])
             
         
         self.med_9=torch.nn.Sequential(*[
-            MedNext(out_channels,out_channels,exp_rate[8])
+            MedNeXtBloc(out_channels,out_channels,exp_rate[8])
             for i in range(self.num_blocks[8])
         ])
         
@@ -201,7 +201,7 @@ if __name__ == "__main__":
     kernel_size = 3
     n_channels=16
     groups = in_channels
-    model = Med_Final2(in_channels=in_channels, out_channels=n_channels)
+    model = MedNeXt(in_channels=in_channels, out_channels=n_channels)
     model.to(device)
 
     input_tensor = torch.randn(1, in_channels, 32, 32, 32)  

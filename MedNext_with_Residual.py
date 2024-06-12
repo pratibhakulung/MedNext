@@ -61,7 +61,7 @@ class MedNeXtBlock(nn.Module):
     
     
 ####### Down-Sampling Block   #######                  
-class downBlock(nn.Module):
+class MedNeXtDownSamplingBlock(nn.Module):
     """
     A down-sampling block using 3D convolutions, consisting of three convolutional layers
     with group normalization, GeLU activation, and an additional down-sampling convolution.
@@ -129,7 +129,7 @@ class downBlock(nn.Module):
     
 
 ####### Up-Sampling Block   #######                  
-class upBlock(nn.Module):
+class MedNeXtUpSamplingBlock(nn.Module):
     """
     An up-sampling block using 3D convolutions, consisting of three convolutional layers
     with group normalization, GeLU activation, and an additional up-sampling transposed convolution.
@@ -229,7 +229,7 @@ class MedNeXt(nn.Module):
             kernel_size=kernel_size,
             groups=groups,
         )for i in range(2)])
-        self.down_block_1 = downBlock(
+        self.down_block_1 = MedNeXtDownSamplingBlock(
             in_channels=n_channels,
             out_channels=2 * n_channels,
             exp_r=exp_r[1],
@@ -244,7 +244,7 @@ class MedNeXt(nn.Module):
             kernel_size=kernel_size,
             groups=groups,
         )for i in range(2)])
-        self.down_block_2 = downBlock(
+        self.down_block_2 = MedNeXtDownSamplingBlock(
             in_channels=2 * n_channels,
             out_channels=4 * n_channels,
             exp_r=exp_r[2],
@@ -259,7 +259,7 @@ class MedNeXt(nn.Module):
             kernel_size=kernel_size,
             groups=groups,
         )for i in range(2)])
-        self.down_block_3 = downBlock(
+        self.down_block_3 = MedNeXtDownSamplingBlock(
             in_channels=4 * n_channels,
             out_channels=8 * n_channels,
             exp_r=exp_r[3],
@@ -274,7 +274,7 @@ class MedNeXt(nn.Module):
             kernel_size=kernel_size,
             groups=groups,
         )for i in range(2)])
-        self.down_block_4 = downBlock(
+        self.down_block_4 = MedNeXtDownSamplingBlock(
             in_channels=8 * n_channels,
             out_channels=16 * n_channels,
             exp_r=exp_r[4],
@@ -292,7 +292,7 @@ class MedNeXt(nn.Module):
         )for i in range(2)])
 
         ## Decoder blocks
-        self.up_block_1 = upBlock(
+        self.up_block_1 = MedNeXtUpSamplingBlock(
             in_channels=16 * n_channels,
             out_channels=16 * n_channels,
             exp_r=exp_r[5],
@@ -307,7 +307,7 @@ class MedNeXt(nn.Module):
             groups=groups,
         )for i in range(2)])
 
-        self.up_block_2 = upBlock(
+        self.up_block_2 = MedNeXtUpSamplingBlock(
             in_channels=8 * n_channels,
             out_channels=8 * n_channels,
             exp_r=exp_r[6],
@@ -322,7 +322,7 @@ class MedNeXt(nn.Module):
             groups=groups,
         )for i in range(2)])
 
-        self.up_block_3 = upBlock(
+        self.up_block_3 = MedNeXtUpSamplingBlock(
             in_channels=4 * n_channels,
             out_channels=4 * n_channels,
             exp_r=exp_r[7],
@@ -337,7 +337,7 @@ class MedNeXt(nn.Module):
             groups=groups,
         )for i in range(2)])
 
-        self.up_block_4 = upBlock(
+        self.up_block_4 = MedNeXtUpSamplingBlock(
             in_channels=2 * n_channels,
             out_channels=2 * n_channels,
             exp_r=exp_r[8],
